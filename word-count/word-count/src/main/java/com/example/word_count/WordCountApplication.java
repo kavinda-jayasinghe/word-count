@@ -48,7 +48,6 @@ public class WordCountApplication {
 				System.out.println(node); // Only print node details
 			}
 		}
-
 		factory.addAdditionalTomcatConnectors(additionalConnectors.toArray(new Connector[0]));
 		return factory;
 	}
