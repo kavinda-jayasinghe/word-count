@@ -51,7 +51,6 @@ public class WordCountApplication {
 		factory.addAdditionalTomcatConnectors(additionalConnectors.toArray(new Connector[0]));
 		return factory;
 	}
-
 	private Connector createAdditionalConnector(int port) {
 		Connector connector = new Connector("org.apache.coyote.http11.Http11NioProtocol");
 		connector.setScheme("http");
