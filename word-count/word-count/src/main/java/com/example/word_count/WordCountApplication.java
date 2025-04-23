@@ -1,5 +1,9 @@
 package com.example.word_count;
+
+import com.example.word_count.config.Node;
+import com.example.word_count.config.NodeRegistry;
 import org.apache.catalina.connector.Connector;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
@@ -9,11 +13,13 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.net.ServerSocket;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @SpringBootApplication
 public class WordCountApplication {
+
+	@Autowired
+	private NodeRegistry nodeRegistry;
 
 	@Value("${node.min-port:8080}")
 	private int minPort;
@@ -23,10 +29,6 @@ public class WordCountApplication {
 
 	@Value("${node.max-nodes:3}")
 	private int maxNodes;
-
-	private static final int MIN_PORT = 8080;
-	private static final int MAX_PORT = 8090;
-	private static final int MAX_NODES = 5;
 
 	public static void main(String[] args) {
 		SpringApplication.run(WordCountApplication.class, args);
@@ -38,11 +40,12 @@ public class WordCountApplication {
 		List<Connector> additionalConnectors = new ArrayList<>();
 
 		int nodesCreated = 0;
-		for (int port = MIN_PORT + 1; port <= MAX_PORT && nodesCreated < MAX_NODES; port++) {
+		for (int port = minPort + 1; port <= maxPort && nodesCreated < maxNodes; port++) {
 			if (isPortAvailable(port)) {
 				additionalConnectors.add(createAdditionalConnector(port));
+				Node node = nodeRegistry.registerNode(port);
 				nodesCreated++;
-				System.out.println("Added node on port: " + port);
+				System.out.println(node); // Only print node details
 			}
 		}
 
@@ -64,26 +67,5 @@ public class WordCountApplication {
 		} catch (Exception e) {
 			return false;
 		}
-	}
-
-
-	@Bean
-	public ServletWebServerFactory servletContainer(NodeRegistry registry) {
-		TomcatServletWebServerFactory factory = new TomcatServletWebServerFactory();
-		List<Connector> additionalConnectors = new ArrayList<>();
-
-		int nodesCreated = 0;
-		for (int port = MIN_PORT + 1; port <= MAX_PORT && nodesCreated < MAX_NODES; port++) {
-			if (isPortAvailable(port)) {
-				Connector connector = createAdditionalConnector(port);
-				additionalConnectors.add(connector);
-				registry.registerNode(port);
-				nodesCreated++;
-				System.out.println("Added and registered node on port: " + port);
-			}
-		}
-
-		factory.addAdditionalTomcatConnectors(additionalConnectors.toArray(new Connector[0]));
-		return factory;
 	}
 }
